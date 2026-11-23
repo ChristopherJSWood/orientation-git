@@ -1,0 +1,40 @@
+# XcodeGen spec: run `xcodegen generate` in this folder to create
+# BedtimeOrBust.xcodeproj (git-ignored). Install with `brew install xcodegen`.
+name: BedtimeOrBust
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  BedtimeCore:
+    path: Core
+targets:
+  BedtimeOrBust:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+    dependencies:
+      - package: BedtimeCore
+        product: BedtimeCore
+    settings:
+      base:
+        # Replace com.example with a reverse-DNS prefix you own before shipping.
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.bedtimeorbust
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Bedtime or Bust"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.casual-games
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ENABLE_PREVIEWS: YES
+        CODE_SIGN_STYLE: Automatic
+    scheme:
+      testTargets: []

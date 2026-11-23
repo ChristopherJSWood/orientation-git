@@ -1,0 +1,60 @@
+name: Bedtime or Bust
+
+on:
+  push:
+    paths:
+      - "BedtimeOrBust/**"
+      - ".github/workflows/bedtime-or-bust.yml"
+  pull_request:
+    paths:
+      - "BedtimeOrBust/**"
+      - ".github/workflows/bedtime-or-bust.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: BedtimeOrBust
+
+jobs:
+  content:
+    name: Content lint, balance, golden traces, prototype (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Lint content.json
+        run: node tools/validate.mjs
+      - name: Balance targets (simulated days)
+        run: node tools/simulate.mjs --check
+      - name: Golden traces are up to date
+        run: node tools/golden.mjs --check
+      - name: Web prototype is up to date
+        run: node tools/build-prototype.mjs --check
+
+  ios:
+    name: Swift tests and iOS build (Xcode)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Engine unit and conformance tests
+        run: swift test --package-path Core
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build app for the iOS Simulator
+        run: |
+          xcodebuild build \
+            -project BedtimeOrBust.xcodeproj \
+            -scheme BedtimeOrBust \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            -quiet \
+            CODE_SIGNING_ALLOWED=NO

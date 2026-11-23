@@ -1,0 +1,526 @@
+<title>Bedtime or Bust</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;600;700&family=VT323&display=swap">
+<style>
+/* Layout: one phone-width column. A microwave-clock HUD sits over a fridge-note
+   event card; choices are chunky toy blocks; the day ends on a till receipt. */
+:root {
+  --bg: #e8ecf1;
+  --paper: #ffffff;
+  --ink: #1c2130;
+  --muted: #566074;
+  --line: #cdd4de;
+  --block: #ffd84d;
+  --block-ink: #1c2130;
+  --block-edge: #1c2130;
+  --accent: #d93f45;
+  --accent-ink: #ffffff;
+  --lcd-bg: #23262e;
+  --lcd-fg: #7fe3c6;
+  --magnet: #d93f45;
+  --sanity: #c93a72;
+  --mood: #d9770f;
+  --home: #178f82;
+  --rep: #7151cf;
+  --sleepy: #4253c9;
+  --good: #1b7f46;
+  --bad: #c2353a;
+  --good-bg: #dff3e7;
+  --bad-bg: #fbe3e3;
+  --neutral-bg: #e3e6fb;
+  --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-lcd: "VT323", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: 2.4rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --paper: #1c212b; --ink: #edf0f5; --muted: #a2abbd; --line: #313846;
+    --block: #f3cb47; --block-ink: #1c2130; --block-edge: #05070a;
+    --accent: #ff6d71; --accent-ink: #1d0b0c; --lcd-bg: #0a0c10; --lcd-fg: #7fe3c6; --magnet: #ff6d71;
+    --sanity: #ff7cab; --mood: #ffaa50; --home: #43cdbb; --rep: #a98fff; --sleepy: #8d99ff;
+    --good: #5ccf8e; --bad: #ff7b7f; --good-bg: #183324; --bad-bg: #3a1c1e; --neutral-bg: #202546;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --paper: #1c212b; --ink: #edf0f5; --muted: #a2abbd; --line: #313846;
+  --block: #f3cb47; --block-ink: #1c2130; --block-edge: #05070a;
+  --accent: #ff6d71; --accent-ink: #1d0b0c; --lcd-bg: #0a0c10; --lcd-fg: #7fe3c6; --magnet: #ff6d71;
+  --sanity: #ff7cab; --mood: #ffaa50; --home: #43cdbb; --rep: #a98fff; --sleepy: #8d99ff;
+  --good: #5ccf8e; --bad: #ff7b7f; --good-bg: #183324; --bad-bg: #3a1c1e; --neutral-bg: #202546;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 var(--step-0)/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 40px;
+}
+main { max-width: 34rem; margin: 0 auto; display: grid; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--sleepy); outline-offset: 3px; border-radius: 6px; }
+
+.eyebrow { font: 700 var(--step--1)/1.2 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+
+/* Microwave clock */
+.lcd {
+  font-family: var(--font-lcd);
+  background: var(--lcd-bg);
+  color: var(--lcd-fg);
+  border-radius: 8px;
+  padding: 2px 12px 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--lcd-fg) 45%, transparent);
+  white-space: nowrap;
+}
+.lcd .colon { animation: blink 1.2s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+/* HUD */
+.hud { display: grid; gap: 12px; }
+.hud-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pill { font: 600 var(--step--1)/1 var(--font-body); padding: 7px 12px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); }
+.day-track { display: grid; gap: 4px; }
+.day-track .bar { height: 8px; }
+.day-track .ends { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+.meter { display: grid; gap: 4px; min-width: 0; }
+.meter.wide { grid-column: 1 / -1; }
+.meter-head { display: flex; align-items: baseline; gap: 6px; font-size: var(--step--1); font-weight: 700; }
+.meter-head .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meter-head .val { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+.meter.danger .val { color: var(--bad); }
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.bar { position: relative; height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 10%, transparent); overflow: hidden; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; transition: width 400ms ease; }
+.meter.danger .fill { background: var(--bad) !important; }
+.bar .zone { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--bad) 35%, transparent) 0 4px, transparent 4px 8px); }
+.bar .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: 0.7; }
+.sleep-note { font-size: 0.8rem; color: var(--muted); }
+
+/* Fridge note */
+.note {
+  position: relative;
+  background: var(--paper);
+  border-radius: 6px 6px 18px 6px;
+  padding: 26px 22px 22px;
+  box-shadow: 0 1px 0 var(--line), 0 10px 24px -14px color-mix(in srgb, var(--ink) 40%, transparent);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.note::before {
+  content: "";
+  position: absolute;
+  top: -9px; left: 50%;
+  width: 22px; height: 22px; margin-left: -11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--magnet) 55%, white), var(--magnet) 60%);
+  box-shadow: 0 2px 3px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.note h2 { font-size: var(--step-2); }
+.note .text { font-size: var(--step-1); line-height: 1.5; }
+
+/* Toy-block buttons */
+.choices { display: grid; gap: 14px; }
+.block {
+  display: flex; align-items: flex-start; gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--block);
+  color: var(--block-ink);
+  border: 2px solid var(--block-edge);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 5px 0 var(--block-edge);
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.block:hover { transform: translateY(-1px); box-shadow: 0 6px 0 var(--block-edge); }
+.block:active { transform: translateY(5px); box-shadow: 0 0 0 var(--block-edge); }
+.block .key { flex: none; width: 1.7em; height: 1.7em; border-radius: 6px; display: grid; place-items: center; font: 700 0.85rem/1 var(--font-display); background: color-mix(in srgb, var(--block-ink) 12%, transparent); }
+.block .label { flex: 1; min-width: 0; }
+.block .mins { flex: none; font: 600 0.8rem/1.6 var(--font-body); opacity: 0.75; white-space: nowrap; }
+.block.primary { background: var(--accent); color: var(--accent-ink); justify-content: center; text-align: center; font-family: var(--font-display); font-size: var(--step-1); font-weight: 600; }
+.block.primary .key { display: none; }
+.linkish { background: none; border: 0; padding: 6px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; justify-self: center; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 700 0.85rem/1 var(--font-body); padding: 7px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.chip.good { background: var(--good-bg); color: var(--good); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.chip.neutral { background: var(--neutral-bg); color: var(--sleepy); }
+
+/* Title */
+.title-screen { display: grid; gap: 20px; padding-top: 24px; justify-items: center; text-align: center; }
+.title-screen h1 { font-size: clamp(2.6rem, 11vw, 3.6rem); font-weight: 700; letter-spacing: -0.01em; }
+.title-screen h1 span { color: var(--accent); }
+.title-screen .tag { font-size: var(--step-1); max-width: 26ch; }
+.title-screen .actions { display: grid; gap: 14px; width: 100%; }
+details.help { width: 100%; text-align: left; background: var(--paper); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--line); }
+details.help summary { cursor: pointer; font-weight: 700; }
+details.help ul { margin: 10px 0 0; padding-left: 1.1em; display: grid; gap: 6px; }
+
+/* Ending */
+.ending-head { display: grid; gap: 8px; text-align: center; padding-top: 12px; padding-bottom: 10px; }
+.ending-head h1 { font-size: var(--step-3); }
+.badge { justify-self: center; font: 700 var(--step--1)/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 12px; border-radius: 999px; }
+.badge.win { background: var(--good-bg); color: var(--good); }
+.badge.soft { background: var(--neutral-bg); color: var(--sleepy); }
+.badge.loss { background: var(--bad-bg); color: var(--bad); }
+.score { font: 600 var(--step-2)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+
+.receipt {
+  font-family: var(--font-lcd);
+  font-size: 1.3rem;
+  line-height: 1.25;
+  background: var(--paper);
+  padding: 20px 18px;
+  border-radius: 4px;
+  box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--ink) 45%, transparent);
+  mask: radial-gradient(circle 6px at 50% 0, transparent 98%, #000) 0 0 / 16px 51% repeat-x, radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 100% / 16px 51% repeat-x;
+  -webkit-mask: radial-gradient(circle 6px at 50% 0, transparent 98%, #000) 0 0 / 16px 51% repeat-x, radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 100% / 16px 51% repeat-x;
+}
+.receipt h3 { font-family: var(--font-lcd); font-weight: 400; font-size: 1.6rem; text-align: center; letter-spacing: 0.08em; }
+.receipt .rule { border-top: 2px dashed var(--line); margin: 10px 0; }
+.receipt .row { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.receipt .row span:first-child { min-width: 0; }
+.receipt .total { font-size: 1.5rem; }
+.receipt .thanks { text-align: center; color: var(--muted); margin-top: 8px; }
+.share { display: grid; gap: 8px; }
+.share textarea { width: 100%; min-height: 4.5em; resize: none; font: 400 var(--step--1)/1.4 var(--font-body); color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+footer { text-align: center; font-size: 0.8rem; color: var(--muted); padding-top: 8px; }
+
+.enter { animation: enter 260ms ease both; }
+@keyframes enter { from { transform: translateY(10px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .enter, .lcd .colon { animation: none; }
+  .bar .fill, .block { transition: none; }
+}
+@media (max-width: 380px) {
+  .meters { grid-template-columns: 1fr; }
+  .note { padding: 24px 16px 18px; }
+}
+</style>
+
+<main id="app" aria-live="polite">
+  <section class="title-screen">
+    <div class="lcd" aria-hidden="true">5<span class="colon">:</span>58</div>
+    <h1>Bedtime <span>or</span> Bust</h1>
+    <p class="tag">One day. One toddler. One goal: make it to 7:30 PM.</p>
+    <p class="muted small">Loading the day…</p>
+  </section>
+</main>
+
+<script type="module">
+/*__ENGINE__*/
+
+/*__CONTENT__*/
+
+// ---- Playtest UI. Rules live in the engine above; this only renders. ----
+const app = document.getElementById("app");
+const cfg = CONTENT.config;
+const SAVE_KEY = "bedtime-or-bust.save.v1";
+const STATS_KEY = "bedtime-or-bust.stats.v1";
+const QUALITY = ["sanity", "mood", "home", "rep"];
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const name = (m) => CONTENT.meters[m];
+
+const storage = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* storage unavailable */ } },
+};
+
+let session = null; // { seed, picks, game, screen, last }
+
+function persist() {
+  if (!session) return;
+  if (session.game.isOver && session.screen === "ending") storage.del(SAVE_KEY);
+  else storage.set(SAVE_KEY, { v: CONTENT.version, seed: session.seed, picks: session.picks, screen: session.screen });
+}
+
+// A saved day is just its seed plus the choices made: replaying them through
+// the deterministic engine rebuilds the exact state.
+function rebuild(saved) {
+  try {
+    if (!saved || saved.v !== CONTENT.version || typeof saved.seed !== "number") return null;
+    const game = new Game(CONTENT, saved.seed);
+    let last = null;
+    for (const p of saved.picks ?? []) last = game.choose(p);
+    const screen = ["intro", "event", "outcome", "ending"].includes(saved.screen) ? saved.screen : "event";
+    return { seed: saved.seed, picks: [...(saved.picks ?? [])], game, screen: screen === "outcome" && !last ? "event" : screen, last };
+  } catch {
+    return null;
+  }
+}
+
+function newDay(seed = Math.floor(Math.random() * 4294967296)) {
+  session = { seed, picks: [], game: new Game(CONTENT, seed), screen: "intro", last: null };
+  persist();
+  render();
+}
+
+function choose(i) {
+  const g = session.game;
+  if (g.isOver || session.screen !== "event") return;
+  if (!(i >= 0 && i < g.visibleChoices().length)) return;
+  session.last = g.choose(i);
+  session.picks.push(i);
+  session.screen = "outcome";
+  if (g.isOver) recordStats(g);
+  persist();
+  render();
+}
+
+function next() {
+  session.screen = session.game.isOver ? "ending" : "event";
+  persist();
+  render();
+}
+
+function recordStats(g) {
+  const s = storage.get(STATS_KEY) ?? { played: 0, won: 0, best: 0, endings: [] };
+  s.played += 1;
+  const kind = CONTENT.endings[g.state.endingId].kind;
+  if (kind === "win") { s.won += 1; s.best = Math.max(s.best, g.score()); }
+  if (!s.endings.includes(g.state.endingId)) s.endings.push(g.state.endingId);
+  storage.set(STATS_KEY, s);
+}
+
+// ---- Views ----
+function lcd(minutes) {
+  const [hm, ap] = formatClock(minutes).split(" ");
+  const [h, m] = hm.split(":");
+  return `<div class="lcd" role="img" aria-label="${esc(formatClock(minutes))}">${h}<span class="colon">:</span>${m} <small>${ap}</small></div>`;
+}
+
+function meterRow(m, value, { wide = false } = {}) {
+  const danger = m !== "sleepy" && value <= 20;
+  let extra = "";
+  let label = name(m);
+  if (m === "sleepy") {
+    extra = `<span class="zone" style="left:${cfg.overtiredAt}%;right:0"></span><span class="tick" style="left:${cfg.asleepThreshold}%"></span>`;
+  }
+  return `<div class="meter${wide ? " wide" : ""}${danger ? " danger" : ""}" role="meter" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}">
+    <div class="meter-head"><span class="swatch" style="background:var(--${m})"></span><span class="name">${esc(label)}</span><span class="val">${value}</span></div>
+    <div class="bar"><span class="fill" style="width:${value}%;background:var(--${m})"></span>${extra}</div>
+  </div>`;
+}
+
+function hud(g) {
+  const m = g.state.meters;
+  const span = cfg.bedtimeClock - cfg.startClock;
+  const pct = Math.max(0, Math.min(100, ((g.state.clock - cfg.startClock) / span) * 100));
+  const mod = g.modifier;
+  return `<section class="hud" aria-label="Status">
+    <div class="hud-top">${lcd(g.state.clock)}<span class="pill">${esc(mod.title)}</span></div>
+    <div class="day-track" aria-label="Progress to bedtime: ${Math.round(pct)}%">
+      <div class="bar"><span class="fill" style="width:${pct}%;background:var(--sleepy)"></span></div>
+      <div class="ends"><span>${formatClock(cfg.startClock)}</span><span>Bedtime ${formatClock(cfg.bedtimeClock)}</span></div>
+    </div>
+    <div class="meters">
+      ${QUALITY.map((k) => meterRow(k, m[k])).join("")}
+      ${meterRow("sleepy", m.sleepy, { wide: true })}
+    </div>
+    <p class="sleep-note">Sleepiness must reach the line (${cfg.asleepThreshold}) by bedtime. In the striped zone (${cfg.overtiredAt}+) they are overtired and their mood drops.</p>
+  </section>`;
+}
+
+function chips(deltas) {
+  const keys = METERS.filter((k) => deltas[k]);
+  if (!keys.length) return "";
+  return `<div class="chips">${keys.map((k) => {
+    const d = deltas[k];
+    const cls = k === "sleepy" ? "neutral" : d > 0 ? "good" : "bad";
+    return `<span class="chip ${cls}">${d > 0 ? "+" : "−"}${Math.abs(d)} ${esc(name(k))}</span>`;
+  }).join("")}</div>`;
+}
+
+function titleView() {
+  const saved = storage.get(SAVE_KEY);
+  const canResume = !!rebuild(saved);
+  const s = storage.get(STATS_KEY);
+  return `<section class="title-screen enter">
+    <div class="lcd" aria-hidden="true">5<span class="colon">:</span>58 <small>AM</small></div>
+    <h1>Bedtime <span>or</span> Bust</h1>
+    <p class="tag">One day. One toddler. One goal: make it to ${formatClock(cfg.bedtimeClock)}.</p>
+    <div class="actions">
+      ${canResume ? `<button class="block primary" data-act="resume">Continue today</button>` : ""}
+      <button class="block ${canResume ? "" : "primary"}" data-act="new"><span class="label">${canResume ? "Start a new day" : "Start the day"}</span></button>
+    </div>
+    <details class="help">
+      <summary>How to play</summary>
+      <ul>
+        <li>Each card is a moment of your day. Every choice costs time and moves your meters.</li>
+        <li><b>Sanity</b>, <b>House</b> or <b>Reputation</b> at zero ends the day early. <b>Toddler Mood</b> at zero means a meltdown: survivable, but expensive.</li>
+        <li><b>Sleepiness</b> climbs all day and naps lower it. At bedtime it must be ${cfg.asleepThreshold}+ or they get a second wind. Above ${cfg.overtiredAt} they are overtired.</li>
+        <li>Asleep at bedtime? Your day is graded on the total of the four main meters.</li>
+        <li>Keys 1–3 pick a choice.</li>
+      </ul>
+    </details>
+    ${s && s.played ? `<p class="muted small">Days survived: ${s.won} of ${s.played} · Best score: ${s.best} · Endings found: ${s.endings.length} of ${Object.keys(CONTENT.endings).length}</p>` : ""}
+    <footer>Playtest build. Same rules and content as the iOS app.</footer>
+  </section>`;
+}
+
+function introView(g) {
+  const mod = g.modifier;
+  return `<section class="enter" style="display:grid;gap:16px">
+    <p class="eyebrow">Today's forecast</p>
+    <article class="note">
+      <h2>${esc(mod.title)}</h2>
+      <p class="text">${esc(mod.text)}</p>
+      ${chips(mod.effects ?? {})}
+    </article>
+    <p class="muted small">Bedtime is ${formatClock(cfg.bedtimeClock)}. Sleepiness needs to be ${cfg.asleepThreshold} or more when it arrives.</p>
+    <button class="block primary" data-act="begin">It's ${formatClock(g.state.clock)}. Begin.</button>
+  </section>`;
+}
+
+function eventView(g) {
+  const ev = g.currentEvent;
+  const choices = g.visibleChoices();
+  return `${hud(g)}
+  <article class="note enter" aria-labelledby="ev-title">
+    <h2 id="ev-title">${esc(ev.title)}</h2>
+    <p class="text">${esc(ev.text)}</p>
+  </article>
+  <div class="choices">
+    ${choices.map((c, i) => `<button class="block" data-act="choose" data-i="${i}"><span class="key" aria-hidden="true">${i + 1}</span><span class="label">${esc(c.label)}</span><span class="mins">${c.duration} min</span></button>`).join("")}
+  </div>`;
+}
+
+function outcomeView(g, r) {
+  const ev = CONTENT.events.find((e) => e.id === r.eventId);
+  return `${hud(g)}
+  <article class="note enter">
+    <p class="eyebrow">${esc(ev.title)}</p>
+    <p class="text">${esc(r.text)}</p>
+    ${chips(r.deltas)}
+    <p class="muted small">${r.minutes} minutes pass. It's now ${formatClock(g.state.clock)}.</p>
+  </article>
+  <button class="block primary" data-act="next">${g.isOver ? "How did the day end?" : "Continue"}</button>`;
+}
+
+function shareText(g) {
+  const e = g.ending;
+  const m = g.state.meters;
+  const verdict = e.kind === "win" ? "made it to bedtime" : e.kind === "soft" ? "made it to bedtime, but the toddler did not" : "did not make it to bedtime";
+  return `I ${verdict} in Bedtime or Bust: "${e.title}" (${g.score()}/400).\nSanity ${m.sanity} · Mood ${m.mood} · House ${m.home} · Reputation ${m.rep} · Sleepiness ${m.sleepy}`;
+}
+
+function endingView(g) {
+  const e = g.ending;
+  const badge = { win: "Asleep by bedtime", soft: "Still awake", loss: "Game over" }[e.kind];
+  const rows = CONTENT.counters.map((c) => `<div class="row"><span>${esc(c.label)}</span><span>${g.state.counters[c.id] ?? 0}</span></div>`).join("");
+  return `<section class="ending-head enter">
+    <span class="badge ${e.kind}">${badge}</span>
+    <h1>${esc(e.title)}</h1>
+  </section>
+  <article class="note">
+    <p class="text">${esc(e.text)}</p>
+    ${e.kind === "win" ? `<p class="score">${g.score()} <span class="muted small">/ 400</span></p>` : ""}
+    <p class="muted small">Day ended at ${formatClock(g.state.clock)} after ${g.state.step} decisions. Forecast: ${esc(g.modifier.title)}.</p>
+  </article>
+  <section class="meters" aria-label="Final meters">
+    ${QUALITY.map((k) => meterRow(k, g.state.meters[k])).join("")}
+    ${meterRow("sleepy", g.state.meters.sleepy, { wide: true })}
+  </section>
+  <section class="receipt" aria-label="Today's receipt">
+    <h3>TODAY'S RECEIPT</h3>
+    <div class="rule"></div>
+    ${rows}
+    <div class="rule"></div>
+    <div class="row total"><span>CRISES SURVIVED</span><span>${g.state.step}</span></div>
+    <p class="thanks">NO REFUNDS. NO EXCHANGES. SEE YOU TOMORROW AT 5:58.</p>
+  </section>
+  <section class="share">
+    <label for="share-text" class="eyebrow">Share your day</label>
+    <textarea id="share-text" readonly>${esc(shareText(g))}</textarea>
+    <button class="block" data-act="copy"><span class="label" id="copy-label">Copy result</span></button>
+  </section>
+  <button class="block primary" data-act="new">Try another day</button>
+  <button class="linkish" data-act="title">Back to title</button>`;
+}
+
+function render() {
+  let html;
+  if (!session) html = titleView();
+  else {
+    const g = session.game;
+    if (session.screen === "intro") html = introView(g);
+    else if (session.screen === "outcome" && session.last) html = outcomeView(g, session.last);
+    else if (session.screen === "ending" || g.isOver) html = endingView(g);
+    else html = eventView(g);
+  }
+  app.innerHTML = html;
+  window.scrollTo({ top: 0 });
+  // Keyboard players land on the first choice (or Continue) of each card.
+  if (session && (session.screen === "event" || session.screen === "outcome")) {
+    app.querySelector(".block")?.focus({ preventScroll: true });
+  }
+}
+
+app.addEventListener("click", async (ev) => {
+  const btn = ev.target.closest("[data-act]");
+  if (!btn) return;
+  const act = btn.dataset.act;
+  if (act === "new") newDay();
+  else if (act === "resume") { session = rebuild(storage.get(SAVE_KEY)); render(); }
+  else if (act === "begin") { session.screen = "event"; persist(); render(); }
+  else if (act === "choose") choose(Number(btn.dataset.i));
+  else if (act === "next") next();
+  else if (act === "title") { session = null; render(); }
+  else if (act === "copy") {
+    const text = shareText(session.game);
+    const label = document.getElementById("copy-label");
+    try {
+      await navigator.clipboard.writeText(text);
+      label.textContent = "Copied";
+    } catch {
+      const ta = document.getElementById("share-text");
+      ta.focus();
+      ta.select();
+      label.textContent = "Selected. Copy it from the box above.";
+    }
+  }
+});
+
+document.addEventListener("keydown", (ev) => {
+  if (!session || session.screen !== "event" || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const n = Number(ev.key);
+  if (n >= 1 && n <= 3) { ev.preventDefault(); choose(n - 1); }
+});
+
+// Keep a game in progress across live updates of this page.
+if (typeof window.claude?.hot?.snapshot === "function") {
+  window.claude.hot.snapshot(() => (session ? { seed: session.seed, picks: session.picks, screen: session.screen, v: CONTENT.version } : {}));
+}
+function start(data) {
+  const restored = rebuild(data);
+  if (restored) session = restored;
+  render();
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
